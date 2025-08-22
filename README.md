@@ -29,7 +29,7 @@ min-maj-dl/
 ### Prérequis
 - **Node.js** (version 18+)
 - **Python** (version 3.8+)
-- **Git**
+- **FFMPEG**
 
 ### 1. Cloner le projet
 ```bash
@@ -46,7 +46,6 @@ source .venv/bin/activate  # Sur macOS/Linux
 .venv\Scripts\activate     # Sur Windows
 
 pip install -r requirements.txt
-pip install scdl  # Outil de téléchargement SoundCloud
 
 cd minmaj_music_dl
 python manage.py migrate
