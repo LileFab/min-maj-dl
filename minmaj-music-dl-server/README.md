@@ -32,26 +32,20 @@ source .venv/bin/activate  # Sur macOS/Linux
 pip install -r requirements.txt
 ```
 
-### 4. Installer scdl
-
-```bash
-pip install scdl
-```
-
-### 5. Configurer la base de données
+### 4. Configurer la base de données
 
 ```bash
 cd minmaj_music_dl
 python manage.py migrate
 ```
 
-### 6. Créer un superutilisateur (optionnel)
+### 5. Créer un superutilisateur (optionnel)
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 7. Démarrer le serveur
+### 6. Démarrer le serveur
 
 ```bash
 python manage.py runserver
