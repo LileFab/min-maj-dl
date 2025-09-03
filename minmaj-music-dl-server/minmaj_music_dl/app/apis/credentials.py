@@ -1,5 +1,4 @@
 from ninja import Router
-from app.models import Credential
 from app.schemas import CredentialSchema, AddCredentialSchema
 from app.services import credentials as credentials_sv
 
@@ -13,5 +12,5 @@ def get(request):
 
 
 @router.post("/create-or-update", response=CredentialSchema | None)
-def create_or_update_credentials(request, credentials: AddCredentialSchema):
-    return credentials_sv.create_or_update_credentials(credentials=credentials)
+def create_or_update(request, credentials: AddCredentialSchema):
+    return credentials_sv.create_or_update(credentials=credentials)

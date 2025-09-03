@@ -8,9 +8,9 @@ def get() -> Credential | None:
 
 def create_or_update(credentials: AddCredentialSchema) -> Credential | None:
     if credentials:
+        cred_data = credentials.model_dump(exclude_none=True)
         old_creds = Credential.objects.first()
         if old_creds is None:
-            cred_data = credentials.model_dump(exclude_none=True)
             cred = Credential.objects.create(**cred_data)
             return cred
         else:
@@ -18,5 +18,4 @@ def create_or_update(credentials: AddCredentialSchema) -> Credential | None:
                 setattr(old_creds, field, value)
             old_creds.save()
             return old_creds
-    else:
-        return None
+    return None

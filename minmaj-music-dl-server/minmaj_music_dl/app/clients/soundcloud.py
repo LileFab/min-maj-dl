@@ -26,6 +26,7 @@ def get_playlists(user_id: int, access_token: str):
     ]
     return urns
 
+
 def get_username(user_id: int, access_token: str):
     url = f"{SOUNDCLOUD_PLAYLIST_START_URL}{SOUNDCLOUD_USER_BASE}{str(user_id)}"
     resp = get(url, headers={"Authorization": f"Bearer {access_token}"}, timeout=15)

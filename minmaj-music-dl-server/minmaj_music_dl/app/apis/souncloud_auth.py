@@ -1,5 +1,4 @@
 from ninja import Router
-from app.models import SoundcloudAuthInformations
 from app.schemas import SoundcloudAuthInformationsSchema
 from app.services import soundcloud_auth as sc_auth_sv
 

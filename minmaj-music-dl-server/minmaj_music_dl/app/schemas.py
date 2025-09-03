@@ -1,4 +1,4 @@
-from app.models import Credential, SoundcloudAuthInformations
+from app.models import Credential, SoundcloudAuthInformations, SpotifyAuthInformations
 from ninja import ModelSchema, Schema
 
 
@@ -12,6 +12,7 @@ class CredentialSchema(ModelSchema):
             "soundcloud_user_id",
             "spotify_client_id",
             "spotify_client_secret",
+            "spotify_user_id",
             "last_update_date",
         )
 
@@ -22,6 +23,7 @@ class AddCredentialSchema(Schema):
     soundcloud_user_id: str | None = None
     spotify_client_id: str | None = None
     spotify_client_secret: str | None = None
+    spotify_user_id: str | None = None
     last_update_date: str | None = None
 
 
@@ -41,12 +43,26 @@ class SoundcloudAuthInformationsSchema(ModelSchema):
         )
 
 
+# SpotifyAuthInformations
+
+
+class SpotifyAuthInformationsSchema(ModelSchema):
+    class Meta:
+        model = SpotifyAuthInformations
+        fields = (
+            "access_token",
+            "token_type",
+            "expires_at",
+        )
+
+
 class SoundcloudPlaylist(Schema):
     title: str
     permalink_url: str
     duration: int
     track_count: int
     last_modified: str | None
+
 
 class SoundcloudTrack(Schema):
     title: str
@@ -55,4 +71,11 @@ class SoundcloudTrack(Schema):
     purchase_title: str | None
     purchase_url: str | None
     genre: str | None
-    artwork_url: str| None
+    artwork_url: str | None
+
+
+class SpotifyPlaylist(Schema):
+    name: str
+    dl_url: str
+    track_count: int
+    owner: str
