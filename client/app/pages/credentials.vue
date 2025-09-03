@@ -89,7 +89,7 @@
 									id="soundcloud_client_id"
 									v-model="formData.soundcloud_client_id"
 									type="text"
-									class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+									class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
 									placeholder="Votre Client ID SoundCloud"
 								/>
 							</div>
@@ -104,7 +104,7 @@
 									id="soundcloud_client_secret"
 									v-model="formData.soundcloud_client_secret"
 									type="text"
-									class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+									class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
 									placeholder="Votre Client Secret SoundCloud"
 								/>
 							</div>
@@ -120,7 +120,7 @@
 								id="soundcloud_user_id"
 								v-model="formData.soundcloud_user_id"
 								type="text"
-								class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+								class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
 								placeholder="Votre User ID SoundCloud"
 							/>
 						</div>
@@ -162,7 +162,7 @@
 									id="spotify_client_id"
 									v-model="formData.spotify_client_id"
 									type="text"
-									class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+									class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
 									placeholder="Votre Client ID Spotify"
 								/>
 							</div>
@@ -177,10 +177,25 @@
 									id="spotify_client_secret"
 									v-model="formData.spotify_client_secret"
 									type="text"
-									class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+									class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
 									placeholder="Votre Client Secret Spotify"
 								/>
 							</div>
+						</div>
+						<div class="mt-4">
+							<label
+								for="spotify_user_id"
+								class="block text-sm font-medium text-gray-700 mb-2"
+							>
+								User ID (optionnel)
+							</label>
+							<input
+								id="spotify_user_id"
+								v-model="formData.spotify_user_id"
+								type="text"
+								class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+								placeholder="Votre User ID Spotify"
+							/>
 						</div>
 					</div>
 
@@ -322,6 +337,7 @@ interface CredentialForm {
 	soundcloud_user_id: string;
 	spotify_client_id: string;
 	spotify_client_secret: string;
+	spotify_user_id: string;
 }
 
 // État du composant
@@ -331,6 +347,7 @@ const formData = ref<CredentialForm>({
 	soundcloud_user_id: "",
 	spotify_client_id: "",
 	spotify_client_secret: "",
+	spotify_user_id: "",
 });
 
 const isLoading = ref(false);
@@ -406,6 +423,7 @@ onMounted(async () => {
 					soundcloud_user_id: data.soundcloud_user_id?.toString() || "",
 					spotify_client_id: data.spotify_client_id || "",
 					spotify_client_secret: data.spotify_client_secret || "",
+					spotify_user_id: data.spotify_user_id?.toString() || "",
 				};
 			}
 		}
