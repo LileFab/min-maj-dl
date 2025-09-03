@@ -156,34 +156,55 @@
 						<h3 class="text-lg font-semibold text-gray-900">
 							Liste des Playlists
 						</h3>
-						<button
-							:disabled="isLoading"
-							class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
-							@click="refreshPlaylists"
-						>
-							<svg
-								v-if="isLoading"
-								class="animate-spin -ml-1 mr-2 h-4 w-4"
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
+						<div class="flex items-center gap-3">
+							<input
+								v-model="searchQuerySoundcloud"
+								type="text"
+								placeholder="Rechercher par titre"
+								class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							/>
+							<select
+								v-model="sortKeySoundcloud"
+								class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none"
 							>
-								<circle
-									class="opacity-25"
-									cx="12"
-									cy="12"
-									r="10"
-									stroke="currentColor"
-									stroke-width="4"
-								/>
-								<path
-									class="opacity-75"
-									fill="currentColor"
-									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-								/>
-							</svg>
-							{{ isLoading ? "Chargement..." : "Actualiser" }}
-						</button>
+								<option value="title">Trier par titre</option>
+								<option value="track_count">Trier par # titres</option>
+							</select>
+							<button
+								class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100"
+								@click="toggleSortOrderSoundcloud"
+							>
+								{{ sortOrderSoundcloud === "asc" ? "Asc" : "Desc" }}
+							</button>
+							<button
+								:disabled="isLoading"
+								class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+								@click="refreshPlaylists"
+							>
+								<svg
+									v-if="isLoading"
+									class="animate-spin -ml-1 mr-2 h-4 w-4"
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									/>
+									<path
+										class="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+									/>
+								</svg>
+								{{ isLoading ? "Chargement..." : "Actualiser" }}
+							</button>
+						</div>
 					</div>
 				</div>
 
@@ -273,7 +294,7 @@
 						</thead>
 						<tbody class="bg-white divide-y divide-gray-200">
 							<tr
-								v-for="playlist in playlists"
+								v-for="playlist in filteredSortedPlaylists"
 								:key="playlist.permalink_url"
 								class="hover:bg-gray-50 transition-colors"
 							>
@@ -407,6 +428,250 @@
 					<span class="text-red-800">{{ error }}</span>
 				</div>
 			</div>
+
+			<!-- Spotify Section -->
+			<div class="mt-16">
+				<div class="text-center mb-12">
+					<h2 class="text-3xl font-bold text-gray-900 mb-4">
+						Vos Playlists Spotify
+					</h2>
+					<p class="text-lg text-gray-600">
+						Découvrez et gérez vos playlists Spotify
+					</p>
+				</div>
+
+				<div
+					class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+				>
+					<div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+						<div class="flex items-center justify-between">
+							<h3 class="text-lg font-semibold text-gray-900">
+								Liste des Playlists
+							</h3>
+							<div class="flex items-center gap-3">
+								<input
+									v-model="searchQuerySpotify"
+									type="text"
+									placeholder="Rechercher par titre"
+									class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+								/>
+								<select
+									v-model="sortKeySpotify"
+									class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none"
+								>
+									<option value="name">Trier par titre</option>
+									<option value="track_count">Trier par # titres</option>
+								</select>
+								<button
+									class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100"
+									@click="toggleSortOrderSpotify"
+								>
+									{{ sortOrderSpotify === "asc" ? "Asc" : "Desc" }}
+								</button>
+								<button
+									:disabled="isLoadingSpotify"
+									class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+									@click="refreshSpotifyPlaylists"
+								>
+									<svg
+										v-if="isLoadingSpotify"
+										class="animate-spin -ml-1 mr-2 h-4 w-4"
+										xmlns="http://www.w3.org/2000/svg"
+										fill="none"
+										viewBox="0 0 24 24"
+									>
+										<circle
+											class="opacity-25"
+											cx="12"
+											cy="12"
+											r="10"
+											stroke="currentColor"
+											stroke-width="4"
+										/>
+										<path
+											class="opacity-75"
+											fill="currentColor"
+											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+										/>
+									</svg>
+									{{ isLoadingSpotify ? "Chargement..." : "Actualiser" }}
+								</button>
+							</div>
+						</div>
+					</div>
+
+					<div
+						v-if="isLoadingSpotify && spotifyPlaylists.length === 0"
+						class="p-12 text-center"
+					>
+						<svg
+							class="animate-spin mx-auto h-12 w-12 text-green-600 mb-4"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+							/>
+							<path
+								class="opacity-75"
+								fill="currentColor"
+								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							/>
+						</svg>
+						<p class="text-gray-600">Chargement des playlists Spotify...</p>
+					</div>
+
+					<div
+						v-else-if="!isLoadingSpotify && spotifyPlaylists.length === 0"
+						class="p-12 text-center"
+					>
+						<svg
+							class="mx-auto h-12 w-12 text-gray-400 mb-4"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+							/>
+						</svg>
+						<p class="text-gray-600 mb-2">Aucune playlist Spotify trouvée</p>
+						<p class="text-sm text-gray-500">
+							Vérifiez vos credentials Spotify
+						</p>
+					</div>
+
+					<div v-else class="overflow-x-auto">
+						<table class="min-w-full divide-y divide-gray-200">
+							<thead class="bg-gray-50">
+								<tr>
+									<th
+										class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+									>
+										Nom
+									</th>
+									<th
+										class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+									>
+										Titres
+									</th>
+									<th
+										class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+									>
+										Propriétaire
+									</th>
+									<th
+										class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+									>
+										Actions
+									</th>
+								</tr>
+							</thead>
+							<tbody class="bg-white divide-y divide-gray-200">
+								<tr
+									v-for="playlist in filteredSortedSpotifyPlaylists"
+									:key="playlist.dl_url"
+									class="hover:bg-gray-50 transition-colors"
+								>
+									<td class="px-6 py-4 whitespace-nowrap">
+										<div class="text-sm font-medium text-gray-900">
+											{{ playlist.name }}
+										</div>
+										<a
+											:href="playlist.dl_url"
+											target="_blank"
+											class="text-sm text-green-600 hover:text-green-800 transition-colors"
+											>Voir sur Spotify</a
+										>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										<div class="text-sm text-gray-900">
+											{{ playlist.track_count }}
+										</div>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										<div class="text-sm text-gray-900">
+											{{ playlist.owner }}
+										</div>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+										<div class="flex flex-col space-y-2">
+											<button
+												:disabled="
+													getDownloadStatus(playlist.dl_url)?.message ===
+													'Téléchargement en cours...'
+												"
+												class="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mr-3"
+												@click="downloadSpotifyPlaylist(playlist)"
+											>
+												{{
+													getDownloadStatus(playlist.dl_url)?.message ===
+													"Téléchargement en cours..."
+														? "Téléchargement..."
+														: "Télécharger"
+												}}
+											</button>
+
+											<div
+												v-if="getDownloadStatus(playlist.dl_url)"
+												class="text-xs"
+											>
+												<div
+													:class="
+														getDownloadStatus(playlist.dl_url)?.success
+															? 'text-green-600'
+															: 'text-red-600'
+													"
+												>
+													{{ getDownloadStatus(playlist.dl_url)?.message }}
+												</div>
+												<div
+													v-if="getDownloadStatus(playlist.dl_url)?.destination"
+													class="text-gray-500"
+												>
+													Destination:
+													{{ getDownloadStatus(playlist.dl_url)?.destination }}
+												</div>
+											</div>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<div
+					v-if="spotifyError"
+					class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg"
+				>
+					<div class="flex items-center">
+						<svg
+							class="w-5 h-5 text-red-600 mr-2"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+						<span class="text-red-800">{{ spotifyError }}</span>
+					</div>
+				</div>
+			</div>
 		</main>
 	</div>
 </template>
@@ -423,6 +688,13 @@ interface SoundcloudPlaylist {
 	last_modified: string | null;
 }
 
+interface SpotifyPlaylist {
+	name: string;
+	dl_url: string;
+	track_count: number;
+	owner: string;
+}
+
 // Types pour la réponse de téléchargement
 interface DownloadResponse {
 	success: boolean;
@@ -432,9 +704,65 @@ interface DownloadResponse {
 
 // État du composant
 const playlists = ref<SoundcloudPlaylist[]>([]);
+const spotifyPlaylists = ref<SpotifyPlaylist[]>([]);
 const isLoading = ref(false);
+const isLoadingSpotify = ref(false);
 const error = ref("");
+const spotifyError = ref("");
 const downloadStatus = ref<{ [key: string]: DownloadResponse | undefined }>({});
+
+// Recherche & tri - SoundCloud
+const searchQuerySoundcloud = ref("");
+const sortKeySoundcloud = ref<"title" | "track_count">("title");
+const sortOrderSoundcloud = ref<"asc" | "desc">("asc");
+
+const filteredSortedPlaylists = computed(() => {
+	const query = searchQuerySoundcloud.value.trim().toLowerCase();
+	const filtered = playlists.value.filter((p) =>
+		p.title.toLowerCase().includes(query)
+	);
+	const sorted = [...filtered].sort((a, b) => {
+		let comp = 0;
+		if (sortKeySoundcloud.value === "title") {
+			comp = a.title.localeCompare(b.title, "fr", { sensitivity: "base" });
+		} else {
+			comp = a.track_count - b.track_count;
+		}
+		return sortOrderSoundcloud.value === "asc" ? comp : -comp;
+	});
+	return sorted;
+});
+
+function toggleSortOrderSoundcloud() {
+	sortOrderSoundcloud.value =
+		sortOrderSoundcloud.value === "asc" ? "desc" : "asc";
+}
+
+// Recherche & tri - Spotify
+const searchQuerySpotify = ref("");
+const sortKeySpotify = ref<"name" | "track_count">("name");
+const sortOrderSpotify = ref<"asc" | "desc">("asc");
+
+const filteredSortedSpotifyPlaylists = computed(() => {
+	const query = searchQuerySpotify.value.trim().toLowerCase();
+	const filtered = spotifyPlaylists.value.filter((p) =>
+		p.name.toLowerCase().includes(query)
+	);
+	const sorted = [...filtered].sort((a, b) => {
+		let comp = 0;
+		if (sortKeySpotify.value === "name") {
+			comp = a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+		} else {
+			comp = a.track_count - b.track_count;
+		}
+		return sortOrderSpotify.value === "asc" ? comp : -comp;
+	});
+	return sorted;
+});
+
+function toggleSortOrderSpotify() {
+	sortOrderSpotify.value = sortOrderSpotify.value === "asc" ? "desc" : "asc";
+}
 
 // Computed properties
 const totalTracks = computed(() => {
@@ -485,11 +813,11 @@ function formatDate(dateString: string | null): string {
 			minute: "2-digit",
 		});
 	} catch {
-		return dateString;
+		return dateString as string;
 	}
 }
 
-// Fonction pour récupérer les playlists
+// Fonction pour récupérer les playlists SoundCloud
 async function fetchPlaylists() {
 	try {
 		isLoading.value = true;
@@ -518,7 +846,34 @@ async function fetchPlaylists() {
 	}
 }
 
-// Fonction pour télécharger une playlist
+// Fonction pour récupérer les playlists Spotify
+async function fetchSpotifyPlaylists() {
+	try {
+		isLoadingSpotify.value = true;
+		spotifyError.value = "";
+
+		const response = await fetch("http://127.0.0.1:8000/api/spotify/playlists");
+
+		if (!response.ok) {
+			throw new Error(`Erreur HTTP: ${response.status}`);
+		}
+
+		const data = await response.json();
+		spotifyPlaylists.value = data || [];
+	} catch (err: unknown) {
+		console.error("Erreur lors de la récupération des playlists Spotify:", err);
+		const errorMessage =
+			err instanceof Error
+				? err.message
+				: "Erreur lors de la récupération des playlists Spotify";
+		spotifyError.value = errorMessage;
+		spotifyPlaylists.value = [];
+	} finally {
+		isLoadingSpotify.value = false;
+	}
+}
+
+// Fonction pour télécharger une playlist SoundCloud
 async function downloadPlaylist(playlist: SoundcloudPlaylist) {
 	try {
 		// Marquer cette playlist comme en cours de téléchargement
@@ -528,25 +883,16 @@ async function downloadPlaylist(playlist: SoundcloudPlaylist) {
 			destination: "",
 		};
 
-		// Log des données envoyées pour débogage
-		console.log("URL de la playlist:", playlist.permalink_url);
-
 		// L'API attend le paramètre 'url' dans les query parameters
 		const url = new URL("http://127.0.0.1:8000/api/soundcloud/dl-playlist");
 		url.searchParams.append("url", playlist.permalink_url);
 
-		console.log("URL de la requête:", url.toString());
-
 		const response = await fetch(url.toString(), {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			// Pas de body nécessaire puisque l'URL est dans les query params
+			headers: { "Content-Type": "application/json" },
 		});
 
 		if (!response.ok) {
-			// Récupérer le détail de l'erreur 422
 			let errorDetail = `Erreur HTTP: ${response.status}`;
 			if (response.status === 422) {
 				try {
@@ -564,7 +910,6 @@ async function downloadPlaylist(playlist: SoundcloudPlaylist) {
 		const data: DownloadResponse = await response.json();
 		downloadStatus.value[playlist.permalink_url] = data;
 
-		// Afficher le message de succès/erreur pendant 5 secondes
 		setTimeout(() => {
 			downloadStatus.value[playlist.permalink_url] = undefined;
 		}, 5000);
@@ -577,22 +922,79 @@ async function downloadPlaylist(playlist: SoundcloudPlaylist) {
 			message: errorMessage,
 			destination: "",
 		};
-
-		// Afficher l'erreur pendant 5 secondes
 		setTimeout(() => {
 			downloadStatus.value[playlist.permalink_url] = undefined;
 		}, 5000);
 	}
 }
 
-// Fonction pour actualiser les playlists
+// Fonction pour télécharger une playlist Spotify
+async function downloadSpotifyPlaylist(playlist: SpotifyPlaylist) {
+	try {
+		// Marquer cette playlist comme en cours de téléchargement
+		downloadStatus.value[playlist.dl_url] = {
+			success: false,
+			message: "Téléchargement en cours...",
+			destination: "",
+		};
+
+		// L'API attend le paramètre 'url' dans les query parameters
+		const url = new URL("http://127.0.0.1:8000/api/spotify/dl-playlist");
+		url.searchParams.append("url", playlist.dl_url);
+
+		const response = await fetch(url.toString(), {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+		});
+
+		if (!response.ok) {
+			let errorDetail = `Erreur HTTP: ${response.status}`;
+			if (response.status === 422) {
+				try {
+					const errorData = await response.json();
+					console.error("Détails de l'erreur 422:", errorData);
+					errorDetail = `Erreur de validation: ${JSON.stringify(errorData)}`;
+				} catch {
+					errorDetail =
+						"Erreur de validation (422) - Format de données incorrect";
+				}
+			}
+			throw new Error(errorDetail);
+		}
+
+		const data: DownloadResponse = await response.json();
+		downloadStatus.value[playlist.dl_url] = data;
+
+		setTimeout(() => {
+			downloadStatus.value[playlist.dl_url] = undefined;
+		}, 5000);
+	} catch (err: unknown) {
+		console.error("Erreur lors du téléchargement Spotify:", err);
+		const errorMessage =
+			err instanceof Error ? err.message : "Erreur lors du téléchargement";
+		downloadStatus.value[playlist.dl_url] = {
+			success: false,
+			message: errorMessage,
+			destination: "",
+		};
+		setTimeout(() => {
+			downloadStatus.value[playlist.dl_url] = undefined;
+		}, 5000);
+	}
+}
+
+// Fonction pour actualiser
 function refreshPlaylists() {
 	fetchPlaylists();
+}
+function refreshSpotifyPlaylists() {
+	fetchSpotifyPlaylists();
 }
 
 // Charger les playlists au montage du composant
 onMounted(() => {
 	fetchPlaylists();
+	fetchSpotifyPlaylists();
 });
 </script>
 
