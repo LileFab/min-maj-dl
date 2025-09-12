@@ -18,7 +18,7 @@ class Credential(models.Model):
 
 
 class SoundcloudAuthInformations(models.Model):
-    access_token = models.CharField(max_length=300, null=True, blank=True)
+    access_token = models.CharField(max_length=1000, null=True, blank=True)
     token_type = models.CharField(max_length=300, null=True, blank=True)
     expires_in = models.IntegerField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
@@ -43,7 +43,7 @@ class SoundcloudAuthInformations(models.Model):
 
 
 class SpotifyAuthInformations(models.Model):
-    access_token = models.CharField(max_length=300, null=True, blank=True)
+    access_token = models.CharField(max_length=500, null=True, blank=True)
     token_type = models.CharField(max_length=300, null=True, blank=True)
     expires_in = models.IntegerField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
