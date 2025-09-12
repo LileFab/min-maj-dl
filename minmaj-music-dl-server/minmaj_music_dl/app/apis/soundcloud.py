@@ -24,3 +24,7 @@ def get_username(request):
 @router.post("/dl-playlist", response=dict)
 def download_playlist(request, url: str):
     return sc_sv.download_song_or_playlist(url)
+
+@router.post("/dl-liked", response=dict)
+def download_liked(request):
+    return sc_sv.download_liked()
