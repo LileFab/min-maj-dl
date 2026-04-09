@@ -678,6 +678,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { BACKEND_URL } from "~/constants";
 
 // Types pour les playlists
 interface SoundcloudPlaylist {
@@ -719,7 +720,7 @@ const sortOrderSoundcloud = ref<"asc" | "desc">("asc");
 const filteredSortedPlaylists = computed(() => {
 	const query = searchQuerySoundcloud.value.trim().toLowerCase();
 	const filtered = playlists.value.filter((p) =>
-		p.title.toLowerCase().includes(query)
+		p.title.toLowerCase().includes(query),
 	);
 	const sorted = [...filtered].sort((a, b) => {
 		let comp = 0;
@@ -746,7 +747,7 @@ const sortOrderSpotify = ref<"asc" | "desc">("asc");
 const filteredSortedSpotifyPlaylists = computed(() => {
 	const query = searchQuerySpotify.value.trim().toLowerCase();
 	const filtered = spotifyPlaylists.value.filter((p) =>
-		p.name.toLowerCase().includes(query)
+		p.name.toLowerCase().includes(query),
 	);
 	const sorted = [...filtered].sort((a, b) => {
 		let comp = 0;
@@ -768,7 +769,7 @@ function toggleSortOrderSpotify() {
 const totalTracks = computed(() => {
 	return playlists.value.reduce(
 		(total, playlist) => total + playlist.track_count,
-		0
+		0,
 	);
 });
 
@@ -794,7 +795,7 @@ function formatDuration(ms: number): string {
 function formatTotalDuration(): string {
 	const totalMs = playlists.value.reduce(
 		(total, playlist) => total + playlist.duration,
-		0
+		0,
 	);
 	return formatDuration(totalMs);
 }
@@ -823,9 +824,7 @@ async function fetchPlaylists() {
 		isLoading.value = true;
 		error.value = "";
 
-		const response = await fetch(
-			"http://127.0.0.1:8000/api/soundcloud/playlists"
-		);
+		const response = await fetch(BACKEND_URL + "/api/soundcloud/playlists");
 
 		if (!response.ok) {
 			throw new Error(`Erreur HTTP: ${response.status}`);
@@ -852,7 +851,7 @@ async function fetchSpotifyPlaylists() {
 		isLoadingSpotify.value = true;
 		spotifyError.value = "";
 
-		const response = await fetch("http://127.0.0.1:8000/api/spotify/playlists");
+		const response = await fetch(BACKEND_URL + "/api/spotify/playlists");
 
 		if (!response.ok) {
 			throw new Error(`Erreur HTTP: ${response.status}`);
@@ -884,7 +883,7 @@ async function downloadPlaylist(playlist: SoundcloudPlaylist) {
 		};
 
 		// L'API attend le paramètre 'url' dans les query parameters
-		const url = new URL("http://127.0.0.1:8000/api/soundcloud/dl-playlist");
+		const url = new URL(BACKEND_URL + "/api/soundcloud/dl-playlist");
 		url.searchParams.append("url", playlist.permalink_url);
 
 		const response = await fetch(url.toString(), {
@@ -939,7 +938,7 @@ async function downloadSpotifyPlaylist(playlist: SpotifyPlaylist) {
 		};
 
 		// L'API attend le paramètre 'url' dans les query parameters
-		const url = new URL("http://127.0.0.1:8000/api/spotify/dl-playlist");
+		const url = new URL(BACKEND_URL + "/api/spotify/dl-playlist");
 		url.searchParams.append("url", playlist.dl_url);
 
 		const response = await fetch(url.toString(), {

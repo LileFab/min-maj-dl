@@ -329,6 +329,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { BACKEND_URL } from "~/constants";
 
 // Types pour les credentials
 interface CredentialForm {
@@ -366,20 +367,20 @@ async function handleSubmit() {
 			!formData.value.spotify_client_id
 		) {
 			throw new Error(
-				"Veuillez renseigner au moins les credentials SoundCloud ou Spotify"
+				"Veuillez renseigner au moins les credentials SoundCloud ou Spotify",
 			);
 		}
 
 		// Appel à l'API
 		const response = await fetch(
-			"http://127.0.0.1:8000/api/credentials/create-or-update",
+			BACKEND_URL + "/api/credentials/create-or-update",
 			{
 				method: "POST",
 				body: JSON.stringify(formData.value),
 				headers: {
 					"Content-Type": "application/json",
 				},
-			}
+			},
 		);
 
 		if (!response.ok) {
@@ -412,7 +413,7 @@ async function handleSubmit() {
 // Charger les credentials existants au montage du composant
 onMounted(async () => {
 	try {
-		const response = await fetch("http://127.0.0.1:8000/api/credentials/");
+		const response = await fetch(BACKEND_URL + "/api/credentials/");
 		if (response.ok) {
 			const data = await response.json();
 			if (data) {
