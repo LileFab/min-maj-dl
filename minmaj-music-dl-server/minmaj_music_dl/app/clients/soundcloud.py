@@ -8,7 +8,7 @@ from requests import get
 
 
 def get_playlists(user_id: int, access_token: str):
-    url = f"{SOUNDCLOUD_PLAYLIST_START_URL}{SOUNDCLOUD_USER_BASE}{user_id}{SOUNDCLOUD_LIKES_END_URL}"
+    url = f"{SOUNDCLOUD_PLAYLIST_START_URL}{SOUNDCLOUD_USER_BASE}{user_id}{SOUNDCLOUD_PLAYLIST_END_URL}"
     resp = get(url, headers={"Authorization": f"Bearer {access_token}"}, timeout=15)
     resp.raise_for_status()
     data = resp.json()

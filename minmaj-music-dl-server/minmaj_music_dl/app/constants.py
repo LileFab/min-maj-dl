@@ -19,4 +19,4 @@ SPOTIFY_PLAYLIST_START_URL = "https://api.spotify.com/v1/users/"
 SPOTIFY_PLAYLIST_END_URL = "/playlists?limit=50&offset=0"
 
 # Common
-DESTINATION_FOLDER = "/Users/fabienfleisch/Music"  # A changer
+DESTINATION_FOLDER = "/music"  # A changer
