@@ -1,17 +1,15 @@
 services:
   back:
-    build:
-      context: ./backend
-    container_name: back
+    image: minmajdl-back:latest
+    container_name: minmaj-dl-backend
     ports:
       - "8000:8000"
     volumes:
       - /srv/samba/music:/music
 
   front:
-    build:
-      context: ./frontend
-    container_name: front
+    image: minmajdl-front:latest
+    container_name: minmaj-dl-frontend
     ports:
       - "3000:3000"
     depends_on:
