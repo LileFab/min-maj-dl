@@ -3,7 +3,7 @@ services:
     image: minmajdl-back:latest
     container_name: minmaj-dl-backend
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - /srv/samba/music:/music
 

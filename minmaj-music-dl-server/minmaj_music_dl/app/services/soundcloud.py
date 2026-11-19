@@ -30,7 +30,7 @@ def download_song_or_playlist(url: str) -> dict:
         os.makedirs(DESTINATION_FOLDER, exist_ok=True)
 
         # Lancer le téléchargement
-        result = run(["scdl", "-l", url, "--path", DESTINATION_FOLDER, "--onlymp3", "--original-name", "--addtofile"], check=True)
+        result = run(["scdl", "-l", url, "--path", DESTINATION_FOLDER, "--original-name", "--addtofile"], check=True)
 
         if result.returncode == 0:
             return {
@@ -70,7 +70,7 @@ def download_liked() -> dict:
         url = SOUNDCLOUD_BASE_URL + username
 
         # Lancer le téléchargement
-        result = run(["scdl", "-l", url, "--path", DESTINATION_FOLDER, "--onlymp3", "--original-name", "--addtofile"], check=True)
+        result = run(["scdl", "-l", url, "--path", DESTINATION_FOLDER, "--original-name", "--addtofile"], check=True)
 
         if result.returncode == 0:
             return {
