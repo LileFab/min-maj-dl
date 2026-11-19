@@ -61,6 +61,36 @@
 				</p>
 			</div>
 
+			<!-- Titres likés SoundCloud -->
+			<div
+				class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8 flex items-center justify-between gap-4 flex-wrap"
+			>
+				<div>
+					<h3 class="text-lg font-semibold text-gray-900">Mes titres likés</h3>
+					<p class="text-sm text-gray-600">
+						Télécharge tous tes likes SoundCloud dans le dossier « Likes
+						SoundCloud ». Les titres déjà téléchargés sont ignorés.
+					</p>
+					<div v-if="likedStatus" class="mt-2 text-sm">
+						<span
+							:class="likedStatus.success ? 'text-green-600' : 'text-red-600'"
+						>
+							{{ likedStatus.message }}
+						</span>
+						<span v-if="likedStatus.destination" class="text-gray-500">
+							— {{ likedStatus.destination }}
+						</span>
+					</div>
+				</div>
+				<button
+					:disabled="isSubmittingLiked"
+					class="px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+					@click="downloadLiked"
+				>
+					{{ isSubmittingLiked ? "Envoi..." : "Télécharger mes likes" }}
+				</button>
+			</div>
+
 			<!-- Stats Cards -->
 			<div class="grid md:grid-cols-3 gap-6 mb-8">
 				<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -964,6 +994,33 @@ async function downloadPlaylist(playlist: SoundcloudPlaylist) {
 		setTimeout(() => {
 			downloadStatus.value[playlist.permalink_url] = undefined;
 		}, 5000);
+	}
+}
+
+// Téléchargement des titres likés SoundCloud
+const likedStatus = ref<DownloadResponse | undefined>(undefined);
+const isSubmittingLiked = ref(false);
+
+async function downloadLiked() {
+	isSubmittingLiked.value = true;
+	likedStatus.value = undefined;
+	try {
+		const response = await fetch(BACKEND_URL + "/api/soundcloud/dl-liked", {
+			method: "POST",
+		});
+		if (!response.ok) {
+			throw new Error(`Erreur HTTP: ${response.status}`);
+		}
+		likedStatus.value = await response.json();
+	} catch (err: unknown) {
+		likedStatus.value = {
+			success: false,
+			message:
+				err instanceof Error ? err.message : "Erreur lors du téléchargement",
+			destination: "",
+		};
+	} finally {
+		isSubmittingLiked.value = false;
 	}
 }
 

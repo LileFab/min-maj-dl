@@ -1,12 +1,19 @@
 import logging
 import os
+import re
 import threading
 from subprocess import run
+from urllib.parse import urlparse
 from app.services import credentials as credentials_sv
 from app.services import soundcloud_auth as sc_auth_sv
 from app.schemas import SoundcloudPlaylist, SoundcloudTrack
 from app.clients import soundcloud as sc_client
-from app.constants import DESTINATION_FOLDER, SOUNDCLOUD_BASE_URL, SCDL_ARCHIVE_FILE
+from app.constants import (
+    DESTINATION_FOLDER,
+    SOUNDCLOUD_BASE_URL,
+    SOUNDCLOUD_LIKES_FOLDER,
+    SOUNDCLOUD_STATE_DIR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,14 +34,23 @@ def get_username() -> str:
     return sc_client.get_username(user_id=user_id, access_token=access_token)
 
 
-def _run_scdl(url: str) -> None:
+def _archive_for(url: str, suffix: str = "") -> str:
+    """Une archive par URL : un titre présent dans plusieurs playlists est
+    bien téléchargé dans chacune"""
+    path = urlparse(url).path.strip("/") or "root"
+    slug = re.sub(r"[^A-Za-z0-9_-]+", "_", path) + suffix
+    return os.path.join(SOUNDCLOUD_STATE_DIR, f"{slug}.archive.txt")
+
+
+def _run_scdl(url: str, path: str, archive: str, extra_args: list[str]) -> None:
     try:
         result = run(
             [
                 "scdl", "-l", url,
-                "--path", DESTINATION_FOLDER,
+                *extra_args,
+                "--path", path,
                 "--original-name", "--addtofile",
-                "--download-archive", SCDL_ARCHIVE_FILE,
+                "--download-archive", archive,
             ]
         )
         if result.returncode == 0:
@@ -45,14 +61,19 @@ def _run_scdl(url: str) -> None:
         logger.exception("Erreur pendant le téléchargement SoundCloud de %s", url)
 
 
-def _start_download(url: str) -> dict:
+def _start_download(url: str, path: str = DESTINATION_FOLDER, extra_args: list[str] | None = None, archive_suffix: str = "") -> dict:
     """Lance scdl en arrière-plan (évite le timeout gunicorn) et répond tout de suite"""
-    os.makedirs(DESTINATION_FOLDER, exist_ok=True)
-    threading.Thread(target=_run_scdl, args=(url,), daemon=True).start()
+    os.makedirs(path, exist_ok=True)
+    os.makedirs(SOUNDCLOUD_STATE_DIR, exist_ok=True)
+    threading.Thread(
+        target=_run_scdl,
+        args=(url, path, _archive_for(url, archive_suffix), extra_args or []),
+        daemon=True,
+    ).start()
     return {
         "success": True,
         "message": "Téléchargement lancé",
-        "destination": DESTINATION_FOLDER,
+        "destination": path,
     }
 
 
@@ -82,7 +103,13 @@ def download_liked() -> dict:
     try:
         # Récupéré ici (thread de la requête) car cela accède à la base Django
         username = get_username()
-        return _start_download(SOUNDCLOUD_BASE_URL + username)
+        # -f : les likes ("favorites"). Sans ça, scdl prend les titres publiés par le compte
+        return _start_download(
+            SOUNDCLOUD_BASE_URL + username,
+            path=os.path.join(DESTINATION_FOLDER, SOUNDCLOUD_LIKES_FOLDER),
+            extra_args=["-f"],
+            archive_suffix="-likes",
+        )
     except Exception as e:
         return {
             "success": False,
