@@ -27,7 +27,8 @@ SPOTIFY_ME_PLAYLISTS_URL = "https://api.spotify.com/v1/me/playlists?limit=50"
 
 # Common
 DESTINATION_FOLDER = "/music"  # A changer
-# Pistes déjà téléchargées, ignorées aux relances
-SCDL_ARCHIVE_FILE = f"{DESTINATION_FOLDER}/.scdl-archive.txt"
+# Archive par playlist SoundCloud (pistes déjà téléchargées, ignorées aux relances)
+SOUNDCLOUD_STATE_DIR = f"{DESTINATION_FOLDER}/.minmaj/soundcloud"
+SOUNDCLOUD_LIKES_FOLDER = "Likes SoundCloud"
 # Archive + nom de dossier par playlist Spotify
 SPOTIFY_STATE_DIR = f"{DESTINATION_FOLDER}/.minmaj/spotify"
