@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -83,7 +84,7 @@ WSGI_APPLICATION = "minmaj_music_dl.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": os.environ.get("DB_PATH", BASE_DIR / "db.sqlite3"),
     }
 }
 
@@ -133,3 +134,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.1.34:3000",
     "http://localhost:3000"
 ]
+
+# Affiche les logs de l'app (téléchargements, renommages) dans `docker logs`
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {"app": {"handlers": ["console"], "level": "INFO"}},
+}

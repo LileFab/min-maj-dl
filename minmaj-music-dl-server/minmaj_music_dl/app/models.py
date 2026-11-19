@@ -11,7 +11,7 @@ class Credential(models.Model):
     spotify_client_id = models.CharField(max_length=200, null=True, blank=True)
     spotify_client_secret = models.CharField(max_length=200, null=True, blank=True)
     spotify_user_id = models.CharField(max_length=100, null=True, blank=True)
-    last_update_date = models.DateTimeField(default=timezone.now())
+    last_update_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return super().__str__()
@@ -43,10 +43,12 @@ class SoundcloudAuthInformations(models.Model):
 
 
 class SpotifyAuthInformations(models.Model):
-    access_token = models.CharField(max_length=500, null=True, blank=True)
+    access_token = models.CharField(max_length=1000, null=True, blank=True)
     token_type = models.CharField(max_length=300, null=True, blank=True)
     expires_in = models.IntegerField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
+    refresh_token = models.CharField(max_length=1000, null=True, blank=True)
+    scope = models.CharField(max_length=300, null=True, blank=True)
 
     def set_tokens(self, data: dict):
         """Enregistre les infos reçues de Spotify et calcule expire_at."""

@@ -25,4 +25,4 @@ WORKDIR /app/minmaj_music_dl
 
 EXPOSE 8000
 
-CMD ["gunicorn", "minmaj_music_dl.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && exec gunicorn minmaj_music_dl.wsgi:application --bind 0.0.0.0:8000"]

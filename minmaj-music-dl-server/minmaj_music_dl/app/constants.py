@@ -1,8 +1,16 @@
+import os
+
 # SC Auth
 SC_API_AUTH_URL = "https://secure.soundcloud.com/oauth/token"
 
 # SP auth
 SP_API_AUTH_URL = "https://accounts.spotify.com/api/token"
+SP_AUTHORIZE_URL = "https://accounts.spotify.com/authorize"
+SP_SCOPES = "playlist-read-private playlist-read-collaborative"
+# Doit être déclarée à l'identique dans l'app Spotify (developer.spotify.com)
+SPOTIFY_REDIRECT_URI = os.environ.get(
+    "SPOTIFY_REDIRECT_URI", "http://127.0.0.1:8888/callback"
+)
 
 # Auth
 SAFETY_MARGIN = 90
@@ -15,8 +23,11 @@ SOUNDCLOUD_USER_BASE = "soundcloud:users:"
 SOUNDCLOUD_BASE_URL = "https://soundcloud.com/"
 
 # SP
-SPOTIFY_PLAYLIST_START_URL = "https://api.spotify.com/v1/users/"
-SPOTIFY_PLAYLIST_END_URL = "/playlists?limit=50&offset=0"
+SPOTIFY_ME_PLAYLISTS_URL = "https://api.spotify.com/v1/me/playlists?limit=50"
 
 # Common
 DESTINATION_FOLDER = "/music"  # A changer
+# Pistes déjà téléchargées, ignorées aux relances
+SCDL_ARCHIVE_FILE = f"{DESTINATION_FOLDER}/.scdl-archive.txt"
+# Archive + nom de dossier par playlist Spotify
+SPOTIFY_STATE_DIR = f"{DESTINATION_FOLDER}/.minmaj/spotify"

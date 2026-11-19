@@ -351,3 +351,6 @@ cache/
 # Fichiers de test
 test_files/
 test_data/
+
+# Base SQLite du backend (volume Docker)
+data/

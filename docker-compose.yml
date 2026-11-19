@@ -6,6 +6,9 @@ services:
       - "8001:8000"
     volumes:
       - /srv/samba/music:/music
+      - ./data:/data
+    environment:
+      - DB_PATH=/data/db.sqlite3
 
   front:
     image: minmajdl-front:latest
