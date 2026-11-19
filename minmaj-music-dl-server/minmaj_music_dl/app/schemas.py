@@ -50,9 +50,9 @@ class SpotifyAuthInformationsSchema(ModelSchema):
     class Meta:
         model = SpotifyAuthInformations
         fields = (
-            "access_token",
             "token_type",
             "expires_at",
+            "scope",
         )
 
 

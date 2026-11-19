@@ -197,6 +197,71 @@
 								placeholder="Votre User ID Spotify"
 							/>
 						</div>
+
+						<!-- Connexion du compte Spotify (OAuth) -->
+						<div class="mt-6 p-4 rounded-lg border border-green-200 bg-green-50">
+							<div class="flex items-center justify-between gap-4 flex-wrap">
+								<div class="text-sm text-gray-800">
+									<strong>Compte Spotify :</strong>
+									<span
+										:class="spotifyConnected ? 'text-green-700' : 'text-gray-600'"
+									>
+										{{ spotifyConnected ? "connecté" : "non connecté" }}
+									</span>
+								</div>
+								<div class="flex gap-2">
+									<button
+										type="button"
+										class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+										@click="startSpotifyLogin"
+									>
+										{{ spotifyConnected ? "Reconnecter" : "Connecter Spotify" }}
+									</button>
+									<button
+										v-if="spotifyConnected"
+										type="button"
+										class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
+										@click="disconnectSpotify"
+									>
+										Déconnecter
+									</button>
+								</div>
+							</div>
+
+							<div v-if="spotifyLoginStarted" class="mt-4 space-y-3">
+								<p class="text-sm text-gray-700">
+									Autorise l'accès dans l'onglet Spotify. Tu arrives ensuite sur
+									une page qui ne charge pas
+									(<code>{{ spotifyRedirectUri }}</code>), c'est normal :
+									copie l'URL complète de la barre d'adresse et colle-la ici.
+								</p>
+								<div class="flex gap-2">
+									<input
+										v-model="spotifyRedirectedUrl"
+										type="text"
+										class="flex-1 px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+										:placeholder="spotifyRedirectUri + '?code=...'"
+										@keydown.enter.prevent="finishSpotifyLogin"
+									/>
+									<button
+										type="button"
+										:disabled="!spotifyRedirectedUrl.trim()"
+										class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+										@click="finishSpotifyLogin"
+									>
+										Valider
+									</button>
+								</div>
+							</div>
+
+							<p
+								v-if="spotifyAuthMessage"
+								class="mt-3 text-sm"
+								:class="spotifyAuthOk ? 'text-green-700' : 'text-red-700'"
+							>
+								{{ spotifyAuthMessage }}
+							</p>
+						</div>
 					</div>
 
 					<!-- Submit Button -->
@@ -410,8 +475,84 @@ async function handleSubmit() {
 	}
 }
 
+// Connexion du compte Spotify (OAuth)
+const spotifyConnected = ref(false);
+const spotifyRedirectUri = ref("");
+const spotifyLoginStarted = ref(false);
+const spotifyRedirectedUrl = ref("");
+const spotifyAuthMessage = ref("");
+const spotifyAuthOk = ref(true);
+
+async function readError(response: Response): Promise<string> {
+	try {
+		const data = await response.json();
+		return data.detail || `Erreur HTTP: ${response.status}`;
+	} catch {
+		return `Erreur HTTP: ${response.status}`;
+	}
+}
+
+async function fetchSpotifyStatus() {
+	try {
+		const response = await fetch(BACKEND_URL + "/api/sp_auth_infos/status");
+		if (response.ok) {
+			const data = await response.json();
+			spotifyConnected.value = data.connected;
+			spotifyRedirectUri.value = data.redirect_uri;
+		}
+	} catch (error) {
+		console.error("Erreur lors de la récupération du statut Spotify:", error);
+	}
+}
+
+async function startSpotifyLogin() {
+	spotifyAuthMessage.value = "";
+	// Ouvert tout de suite (dans le clic) pour ne pas être bloqué comme popup
+	const tab = window.open("", "_blank");
+	try {
+		const response = await fetch(BACKEND_URL + "/api/sp_auth_infos/login-url");
+		if (!response.ok) throw new Error(await readError(response));
+		const data = await response.json();
+		spotifyRedirectUri.value = data.redirect_uri;
+		if (tab) tab.location.href = data.url;
+		else window.location.href = data.url;
+		spotifyLoginStarted.value = true;
+	} catch (error: unknown) {
+		tab?.close();
+		spotifyAuthOk.value = false;
+		spotifyAuthMessage.value =
+			error instanceof Error ? error.message : "Erreur de connexion Spotify";
+	}
+}
+
+async function finishSpotifyLogin() {
+	try {
+		const url = new URL(BACKEND_URL + "/api/sp_auth_infos/connect");
+		url.searchParams.append("code", spotifyRedirectedUrl.value.trim());
+		const response = await fetch(url.toString(), { method: "POST" });
+		if (!response.ok) throw new Error(await readError(response));
+		spotifyAuthOk.value = true;
+		spotifyAuthMessage.value = "Compte Spotify connecté !";
+		spotifyLoginStarted.value = false;
+		spotifyRedirectedUrl.value = "";
+		await fetchSpotifyStatus();
+	} catch (error: unknown) {
+		spotifyAuthOk.value = false;
+		spotifyAuthMessage.value =
+			error instanceof Error ? error.message : "Erreur de connexion Spotify";
+	}
+}
+
+async function disconnectSpotify() {
+	await fetch(BACKEND_URL + "/api/sp_auth_infos/disconnect", { method: "POST" });
+	spotifyAuthOk.value = true;
+	spotifyAuthMessage.value = "Compte Spotify déconnecté";
+	await fetchSpotifyStatus();
+}
+
 // Charger les credentials existants au montage du composant
 onMounted(async () => {
+	fetchSpotifyStatus();
 	try {
 		const response = await fetch(BACKEND_URL + "/api/credentials/");
 		if (response.ok) {

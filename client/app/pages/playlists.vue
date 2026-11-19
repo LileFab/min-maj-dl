@@ -440,6 +440,40 @@
 					</p>
 				</div>
 
+				<!-- Télécharger depuis un lien -->
+				<div
+					class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8"
+				>
+					<h3 class="text-lg font-semibold text-gray-900 mb-4">
+						Télécharger depuis un lien
+					</h3>
+					<form class="flex gap-3" @submit.prevent="downloadPastedSpotifyUrl">
+						<input
+							v-model="pastedSpotifyUrl"
+							type="text"
+							placeholder="https://open.spotify.com/playlist/..."
+							class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+						/>
+						<button
+							type="submit"
+							:disabled="isSubmittingPasted || !pastedSpotifyUrl.trim()"
+							class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+						>
+							{{ isSubmittingPasted ? "Envoi..." : "Télécharger" }}
+						</button>
+					</form>
+					<div v-if="pastedStatus" class="mt-3 text-sm">
+						<div
+							:class="pastedStatus.success ? 'text-green-600' : 'text-red-600'"
+						>
+							{{ pastedStatus.message }}
+						</div>
+						<div v-if="pastedStatus.destination" class="text-gray-500">
+							Destination: {{ pastedStatus.destination }}
+						</div>
+					</div>
+				</div>
+
 				<div
 					class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
 				>
@@ -854,7 +888,13 @@ async function fetchSpotifyPlaylists() {
 		const response = await fetch(BACKEND_URL + "/api/spotify/playlists");
 
 		if (!response.ok) {
-			throw new Error(`Erreur HTTP: ${response.status}`);
+			let detail = `Erreur HTTP: ${response.status}`;
+			try {
+				detail = (await response.json()).detail || detail;
+			} catch {
+				// pas de JSON : on garde le code HTTP
+			}
+			throw new Error(detail);
 		}
 
 		const data = await response.json();
@@ -927,11 +967,42 @@ async function downloadPlaylist(playlist: SoundcloudPlaylist) {
 	}
 }
 
+// Téléchargement depuis un lien Spotify collé
+const pastedSpotifyUrl = ref("");
+const pastedStatus = ref<DownloadResponse | undefined>(undefined);
+const isSubmittingPasted = ref(false);
+
+async function downloadPastedSpotifyUrl() {
+	const link = pastedSpotifyUrl.value.trim();
+	if (!link.startsWith("https://open.spotify.com/")) {
+		pastedStatus.value = {
+			success: false,
+			message: "Le lien doit commencer par https://open.spotify.com/",
+			destination: "",
+		};
+		return;
+	}
+
+	isSubmittingPasted.value = true;
+	pastedStatus.value = undefined;
+	await downloadSpotifyUrl(link);
+	pastedStatus.value = downloadStatus.value[link];
+	if (pastedStatus.value?.success) {
+		pastedSpotifyUrl.value = "";
+	}
+	isSubmittingPasted.value = false;
+}
+
 // Fonction pour télécharger une playlist Spotify
-async function downloadSpotifyPlaylist(playlist: SpotifyPlaylist) {
+function downloadSpotifyPlaylist(playlist: SpotifyPlaylist) {
+	return downloadSpotifyUrl(playlist.dl_url);
+}
+
+// Lance le téléchargement d'un lien Spotify (statut stocké dans downloadStatus[link])
+async function downloadSpotifyUrl(link: string) {
 	try {
-		// Marquer cette playlist comme en cours de téléchargement
-		downloadStatus.value[playlist.dl_url] = {
+		// Marquer ce lien comme en cours de téléchargement
+		downloadStatus.value[link] = {
 			success: false,
 			message: "Téléchargement en cours...",
 			destination: "",
@@ -939,7 +1010,7 @@ async function downloadSpotifyPlaylist(playlist: SpotifyPlaylist) {
 
 		// L'API attend le paramètre 'url' dans les query parameters
 		const url = new URL(BACKEND_URL + "/api/spotify/dl-playlist");
-		url.searchParams.append("url", playlist.dl_url);
+		url.searchParams.append("url", link);
 
 		const response = await fetch(url.toString(), {
 			method: "POST",
@@ -962,22 +1033,22 @@ async function downloadSpotifyPlaylist(playlist: SpotifyPlaylist) {
 		}
 
 		const data: DownloadResponse = await response.json();
-		downloadStatus.value[playlist.dl_url] = data;
+		downloadStatus.value[link] = data;
 
 		setTimeout(() => {
-			downloadStatus.value[playlist.dl_url] = undefined;
+			downloadStatus.value[link] = undefined;
 		}, 5000);
 	} catch (err: unknown) {
 		console.error("Erreur lors du téléchargement Spotify:", err);
 		const errorMessage =
 			err instanceof Error ? err.message : "Erreur lors du téléchargement";
-		downloadStatus.value[playlist.dl_url] = {
+		downloadStatus.value[link] = {
 			success: false,
 			message: errorMessage,
 			destination: "",
 		};
 		setTimeout(() => {
-			downloadStatus.value[playlist.dl_url] = undefined;
+			downloadStatus.value[link] = undefined;
 		}, 5000);
 	}
 }

@@ -1,10 +1,14 @@
+import logging
 import os
+import threading
 from subprocess import run
 from app.services import credentials as credentials_sv
 from app.services import soundcloud_auth as sc_auth_sv
 from app.schemas import SoundcloudPlaylist, SoundcloudTrack
 from app.clients import soundcloud as sc_client
-from app.constants import DESTINATION_FOLDER, SOUNDCLOUD_BASE_URL
+from app.constants import DESTINATION_FOLDER, SOUNDCLOUD_BASE_URL, SCDL_ARCHIVE_FILE
+
+logger = logging.getLogger(__name__)
 
 
 def get_playlists() -> list[SoundcloudPlaylist]:
@@ -23,34 +27,46 @@ def get_username() -> str:
     return sc_client.get_username(user_id=user_id, access_token=access_token)
 
 
-def download_song_or_playlist(url: str) -> dict:
-    """Télécharge une chanson ou playlist et retourne le statut"""
+def _run_scdl(url: str) -> None:
     try:
-        # Créer le dossier de destination
-        os.makedirs(DESTINATION_FOLDER, exist_ok=True)
-
-        # Lancer le téléchargement
-        result = run(["scdl", "-l", url, "--path", DESTINATION_FOLDER, "--original-name", "--addtofile"], check=True)
-
+        result = run(
+            [
+                "scdl", "-l", url,
+                "--path", DESTINATION_FOLDER,
+                "--original-name", "--addtofile",
+                "--download-archive", SCDL_ARCHIVE_FILE,
+            ]
+        )
         if result.returncode == 0:
-            return {
-                "success": True,
-                "message": "Téléchargement terminé avec succès",
-                "destination": DESTINATION_FOLDER,
-            }
+            logger.info("Téléchargement SoundCloud terminé: %s", url)
         else:
-            return {
-                "success": False,
-                "message": f"Erreur lors du téléchargement (code: {result})",
-                "destination": DESTINATION_FOLDER,
-            }
+            logger.error("scdl a échoué (code %s) pour %s", result.returncode, url)
+    except Exception:
+        logger.exception("Erreur pendant le téléchargement SoundCloud de %s", url)
 
+
+def _start_download(url: str) -> dict:
+    """Lance scdl en arrière-plan (évite le timeout gunicorn) et répond tout de suite"""
+    os.makedirs(DESTINATION_FOLDER, exist_ok=True)
+    threading.Thread(target=_run_scdl, args=(url,), daemon=True).start()
+    return {
+        "success": True,
+        "message": "Téléchargement lancé",
+        "destination": DESTINATION_FOLDER,
+    }
+
+
+def download_song_or_playlist(url: str) -> dict:
+    """Lance le téléchargement d'une chanson ou playlist"""
+    try:
+        return _start_download(url)
     except Exception as e:
         return {
             "success": False,
             "message": f"Erreur: {str(e)}",
             "destination": DESTINATION_FOLDER,
         }
+
 
 def get_liked() -> list[SoundcloudTrack]:
     user_id = credentials_sv.get().soundcloud_user_id
@@ -60,31 +76,13 @@ def get_liked() -> list[SoundcloudTrack]:
 
     return [SoundcloudPlaylist(**pl) for pl in json_data]
 
+
 def download_liked() -> dict:
-    """Télécharge les titres likés"""
+    """Lance le téléchargement des titres likés"""
     try:
-        # Créer le dossier de destination
-        os.makedirs(DESTINATION_FOLDER, exist_ok=True)
-
+        # Récupéré ici (thread de la requête) car cela accède à la base Django
         username = get_username()
-        url = SOUNDCLOUD_BASE_URL + username
-
-        # Lancer le téléchargement
-        result = run(["scdl", "-l", url, "--path", DESTINATION_FOLDER, "--original-name", "--addtofile"], check=True)
-
-        if result.returncode == 0:
-            return {
-                "success": True,
-                "message": "Téléchargement terminé avec succès",
-                "destination": DESTINATION_FOLDER,
-            }
-        else:
-            return {
-                "success": False,
-                "message": f"Erreur lors du téléchargement (code: {result})",
-                "destination": DESTINATION_FOLDER,
-            }
-
+        return _start_download(SOUNDCLOUD_BASE_URL + username)
     except Exception as e:
         return {
             "success": False,
