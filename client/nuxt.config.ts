@@ -5,5 +5,8 @@ export default defineNuxtConfig({
 
 	css: ["~/assets/css/main.css"],
 
+	// Ancienne page, remplacée par les onglets de l'accueil
+	routeRules: { "/playlists": { redirect: "/" } },
+
 	modules: ["@nuxt/eslint", "@nuxt/image", "@nuxt/test-utils", "@nuxt/ui"],
 });
