@@ -1,413 +1,188 @@
 <template>
-	<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-		<!-- Header -->
-		<header class="bg-white shadow-sm border-b border-gray-200">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div class="flex justify-between items-center py-6">
-					<div class="flex items-center">
-						<NuxtLink to="/" class="flex items-center">
-							<div
-								class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
-							>
-								<svg
-									class="w-6 h-6 text-white"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-									/>
-								</svg>
-							</div>
-							<h1 class="ml-3 text-2xl font-bold text-gray-900">MinMajDL</h1>
-						</NuxtLink>
-					</div>
-					<div class="flex space-x-4">
-						<NuxtLink
-							to="/"
-							class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-						>
-							Accueil
-						</NuxtLink>
-					</div>
-				</div>
-			</div>
-		</header>
+	<form class="space-y-6 max-w-3xl" @submit.prevent="save">
+		<div>
+			<h2 class="text-xl font-semibold">Réglages</h2>
+			<p class="text-sm text-gray-500">
+				Clés d'API utilisées pour lister et télécharger tes playlists.
+				YouTube ne demande aucune configuration.
+			</p>
+		</div>
 
-		<!-- Main Content -->
-		<main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-			<!-- Page Title -->
-			<div class="text-center mb-12">
-				<h2 class="text-3xl font-bold text-gray-900 mb-4">
-					Configuration des Credentials
-				</h2>
-				<p class="text-lg text-gray-600">
-					Configurez vos clés API pour SoundCloud et Spotify
-				</p>
+		<SectionCard
+			v-for="service in SERVICES"
+			:key="service.id"
+			:title="service.title"
+		>
+			<template #actions>
+				<a
+					:href="service.help"
+					target="_blank"
+					rel="noopener"
+					class="text-sm"
+					:class="ACCENTS[service.accent].link"
+				>
+					Créer une application ↗
+				</a>
+			</template>
+
+			<div class="grid sm:grid-cols-2 gap-4">
+				<label
+					v-for="field in service.fields"
+					:key="field.key"
+					class="block text-sm"
+					:class="{ 'sm:col-span-2': 'wide' in field }"
+				>
+					<span class="block mb-1 font-medium text-gray-700">
+						{{ field.label }}
+					</span>
+					<input
+						v-model="form[field.key]"
+						type="text"
+						autocomplete="off"
+						:class="[INPUT_CLASS, ACCENTS[service.accent].ring]"
+					>
+				</label>
 			</div>
 
-			<!-- Credentials Form -->
-			<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-				<form class="space-y-8" @submit.prevent="handleSubmit">
-					<!-- SoundCloud Section -->
-					<div>
-						<h3
-							class="text-xl font-semibold text-gray-900 mb-6 flex items-center"
+			<!-- Connexion du compte Spotify (OAuth) -->
+			<div
+				v-if="service.id === 'spotify'"
+				class="mt-5 pt-5 border-t border-gray-200 space-y-3"
+			>
+				<div class="flex items-center justify-between gap-4 flex-wrap">
+					<p class="text-sm">
+						Compte Spotify :
+						<span
+							class="font-medium"
+							:class="spotifyConnected ? 'text-green-700' : 'text-gray-500'"
 						>
-							<div
-								class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3"
-							>
-								<svg
-									class="w-5 h-5 text-orange-600"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-									/>
-								</svg>
-							</div>
-							SoundCloud
-						</h3>
-						<div class="grid md:grid-cols-2 gap-6">
-							<div>
-								<label
-									for="soundcloud_client_id"
-									class="block text-sm font-medium text-gray-700 mb-2"
-								>
-									Client ID
-								</label>
-								<input
-									id="soundcloud_client_id"
-									v-model="formData.soundcloud_client_id"
-									type="text"
-									class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-									placeholder="Votre Client ID SoundCloud"
-								/>
-							</div>
-							<div>
-								<label
-									for="soundcloud_client_secret"
-									class="block text-sm font-medium text-gray-700 mb-2"
-								>
-									Client Secret
-								</label>
-								<input
-									id="soundcloud_client_secret"
-									v-model="formData.soundcloud_client_secret"
-									type="text"
-									class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-									placeholder="Votre Client Secret SoundCloud"
-								/>
-							</div>
-						</div>
-						<div class="mt-4">
-							<label
-								for="soundcloud_user_id"
-								class="block text-sm font-medium text-gray-700 mb-2"
-							>
-								User ID (optionnel)
-							</label>
-							<input
-								id="soundcloud_user_id"
-								v-model="formData.soundcloud_user_id"
-								type="text"
-								class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-								placeholder="Votre User ID SoundCloud"
-							/>
-						</div>
-					</div>
-
-					<!-- Spotify Section -->
-					<div>
-						<h3
-							class="text-xl font-semibold text-gray-900 mb-6 flex items-center"
-						>
-							<div
-								class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3"
-							>
-								<svg
-									class="w-5 h-5 text-green-600"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-									/>
-								</svg>
-							</div>
-							Spotify
-						</h3>
-						<div class="grid md:grid-cols-2 gap-6">
-							<div>
-								<label
-									for="spotify_client_id"
-									class="block text-sm font-medium text-gray-700 mb-2"
-								>
-									Client ID
-								</label>
-								<input
-									id="spotify_client_id"
-									v-model="formData.spotify_client_id"
-									type="text"
-									class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-									placeholder="Votre Client ID Spotify"
-								/>
-							</div>
-							<div>
-								<label
-									for="spotify_client_secret"
-									class="block text-sm font-medium text-gray-700 mb-2"
-								>
-									Client Secret
-								</label>
-								<input
-									id="spotify_client_secret"
-									v-model="formData.spotify_client_secret"
-									type="text"
-									class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-									placeholder="Votre Client Secret Spotify"
-								/>
-							</div>
-						</div>
-						<div class="mt-4">
-							<label
-								for="spotify_user_id"
-								class="block text-sm font-medium text-gray-700 mb-2"
-							>
-								User ID (optionnel)
-							</label>
-							<input
-								id="spotify_user_id"
-								v-model="formData.spotify_user_id"
-								type="text"
-								class="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-								placeholder="Votre User ID Spotify"
-							/>
-						</div>
-
-						<!-- Connexion du compte Spotify (OAuth) -->
-						<div class="mt-6 p-4 rounded-lg border border-green-200 bg-green-50">
-							<div class="flex items-center justify-between gap-4 flex-wrap">
-								<div class="text-sm text-gray-800">
-									<strong>Compte Spotify :</strong>
-									<span
-										:class="spotifyConnected ? 'text-green-700' : 'text-gray-600'"
-									>
-										{{ spotifyConnected ? "connecté" : "non connecté" }}
-									</span>
-								</div>
-								<div class="flex gap-2">
-									<button
-										type="button"
-										class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-										@click="startSpotifyLogin"
-									>
-										{{ spotifyConnected ? "Reconnecter" : "Connecter Spotify" }}
-									</button>
-									<button
-										v-if="spotifyConnected"
-										type="button"
-										class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
-										@click="disconnectSpotify"
-									>
-										Déconnecter
-									</button>
-								</div>
-							</div>
-
-							<div v-if="spotifyLoginStarted" class="mt-4 space-y-3">
-								<p class="text-sm text-gray-700">
-									Autorise l'accès dans l'onglet Spotify. Tu arrives ensuite sur
-									une page qui ne charge pas
-									(<code>{{ spotifyRedirectUri }}</code>), c'est normal :
-									copie l'URL complète de la barre d'adresse et colle-la ici.
-								</p>
-								<div class="flex gap-2">
-									<input
-										v-model="spotifyRedirectedUrl"
-										type="text"
-										class="flex-1 px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-										:placeholder="spotifyRedirectUri + '?code=...'"
-										@keydown.enter.prevent="finishSpotifyLogin"
-									/>
-									<button
-										type="button"
-										:disabled="!spotifyRedirectedUrl.trim()"
-										class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-										@click="finishSpotifyLogin"
-									>
-										Valider
-									</button>
-								</div>
-							</div>
-
-							<p
-								v-if="spotifyAuthMessage"
-								class="mt-3 text-sm"
-								:class="spotifyAuthOk ? 'text-green-700' : 'text-red-700'"
-							>
-								{{ spotifyAuthMessage }}
-							</p>
-						</div>
-					</div>
-
-					<!-- Submit Button -->
-					<div class="flex justify-center pt-6">
+							{{ spotifyConnected ? "connecté" : "non connecté" }}
+						</span>
+					</p>
+					<div class="flex gap-2">
 						<button
-							type="submit"
-							:disabled="isLoading"
-							class="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg flex items-center"
+							v-if="spotifyConnected"
+							type="button"
+							:class="SECONDARY_BUTTON_CLASS"
+							@click="disconnectSpotify"
 						>
-							<svg
-								v-if="isLoading"
-								class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-							>
-								<circle
-									class="opacity-25"
-									cx="12"
-									cy="12"
-									r="10"
-									stroke="currentColor"
-									stroke-width="4"
-								/>
-								<path
-									class="opacity-75"
-									fill="currentColor"
-									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-								/>
-							</svg>
-							{{ isLoading ? "Sauvegarde..." : "Sauvegarder les credentials" }}
+							Déconnecter
+						</button>
+						<button
+							type="button"
+							:class="[BUTTON_CLASS, ACCENTS.green.button]"
+							@click="startSpotifyLogin"
+						>
+							{{ spotifyConnected ? "Reconnecter" : "Connecter Spotify" }}
 						</button>
 					</div>
-				</form>
-				<div class="flex justify-center mt-6">
-					<NuxtLink
-						to="/playlists"
-						class="flex items-center justify-center px-8 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-					>
-						Voir mes playlists
-					</NuxtLink>
 				</div>
 
-				<!-- Success/Error Messages -->
-				<div
-					v-if="message"
-					class="mt-6 p-4 rounded-lg"
-					:class="
-						messageType === 'success'
-							? 'bg-green-50 text-green-800 border border-green-200'
-							: 'bg-red-50 text-red-800 border border-red-200'
-					"
-				>
-					<div class="flex items-center">
-						<svg
-							v-if="messageType === 'success'"
-							class="w-5 h-5 mr-2"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
+				<div v-if="spotifyLoginStarted" class="space-y-2">
+					<p class="text-sm text-gray-600">
+						Autorise l'accès dans l'onglet Spotify. Tu arrives ensuite sur une
+						page qui ne charge pas (<code>{{ spotifyRedirectUri }}</code>), c'est
+						normal : copie l'URL complète de la barre d'adresse et colle-la ici.
+					</p>
+					<div class="flex gap-2">
+						<input
+							v-model="spotifyRedirectedUrl"
+							type="text"
+							:placeholder="spotifyRedirectUri + '?code=...'"
+							:class="[INPUT_CLASS, ACCENTS.green.ring]"
+							@keydown.enter.prevent="finishSpotifyLogin"
 						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M5 13l4 4L19 7"
-							/>
-						</svg>
-						<svg
-							v-else
-							class="w-5 h-5 mr-2"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
+						<button
+							type="button"
+							:disabled="!spotifyRedirectedUrl.trim()"
+							:class="[BUTTON_CLASS, ACCENTS.green.button]"
+							@click="finishSpotifyLogin"
 						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-						{{ message }}
+							Valider
+						</button>
 					</div>
 				</div>
-			</div>
 
-			<!-- Help Section -->
-			<div class="mt-8 bg-blue-50 rounded-xl p-6 border border-blue-200">
-				<h4 class="text-lg font-semibold text-blue-900 mb-4 flex items-center">
-					<svg
-						class="w-5 h-5 mr-2"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					Comment obtenir vos credentials ?
-				</h4>
-				<div class="space-y-3 text-sm text-blue-800">
-					<p>
-						<strong>SoundCloud :</strong> Créez une application sur
-						<a
-							href="https://soundcloud.com/you/apps"
-							target="_blank"
-							class="underline hover:text-blue-900"
-							>soundcloud.com/you/apps</a
-						>
-					</p>
-					<p>
-						<strong>Spotify :</strong> Créez une application sur
-						<a
-							href="https://developer.spotify.com/dashboard"
-							target="_blank"
-							class="underline hover:text-blue-900"
-							>developer.spotify.com</a
-						>
-					</p>
-				</div>
+				<p
+					v-if="spotifyAuthMessage"
+					class="text-sm"
+					:class="spotifyAuthOk ? 'text-emerald-600' : 'text-red-600'"
+				>
+					{{ spotifyAuthMessage }}
+				</p>
 			</div>
-		</main>
-	</div>
+		</SectionCard>
+
+		<div class="flex items-center gap-4">
+			<button
+				type="submit"
+				:disabled="isSaving"
+				:class="[BUTTON_CLASS, 'bg-gray-900 hover:bg-gray-700']"
+			>
+				<LoadingSpinner v-if="isSaving" class="w-4 h-4" />
+				Enregistrer
+			</button>
+			<p
+				v-if="saveMessage"
+				class="text-sm"
+				:class="saveOk ? 'text-emerald-600' : 'text-red-600'"
+			>
+				{{ saveMessage }}
+			</p>
+		</div>
+	</form>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { BACKEND_URL } from "~/constants";
+import { onMounted, ref } from "vue";
+import {
+	ACCENTS,
+	BUTTON_CLASS,
+	INPUT_CLASS,
+	SECONDARY_BUTTON_CLASS,
+} from "~/utils/accents";
+import { apiGet, apiPost } from "~/utils/api";
 
-// Types pour les credentials
-interface CredentialForm {
-	soundcloud_client_id: string;
-	soundcloud_client_secret: string;
-	soundcloud_user_id: string;
-	spotify_client_id: string;
-	spotify_client_secret: string;
-	spotify_user_id: string;
-}
+type CredentialKey =
+	| "soundcloud_client_id"
+	| "soundcloud_client_secret"
+	| "soundcloud_user_id"
+	| "spotify_client_id"
+	| "spotify_client_secret"
+	| "spotify_user_id";
 
-// État du composant
-const formData = ref<CredentialForm>({
+const SERVICES = [
+	{
+		id: "soundcloud",
+		title: "SoundCloud",
+		accent: "orange",
+		help: "https://soundcloud.com/you/apps",
+		fields: [
+			{ key: "soundcloud_client_id", label: "Client ID" },
+			{ key: "soundcloud_client_secret", label: "Client secret" },
+			{ key: "soundcloud_user_id", label: "User ID", wide: true },
+		],
+	},
+	{
+		id: "spotify",
+		title: "Spotify",
+		accent: "green",
+		help: "https://developer.spotify.com/dashboard",
+		fields: [
+			{ key: "spotify_client_id", label: "Client ID" },
+			{ key: "spotify_client_secret", label: "Client secret" },
+			{ key: "spotify_user_id", label: "User ID (optionnel)", wide: true },
+		],
+	},
+] as const satisfies readonly {
+	id: string;
+	title: string;
+	accent: keyof typeof ACCENTS;
+	help: string;
+	fields: readonly { key: CredentialKey; label: string; wide?: boolean }[];
+}[];
+
+const form = ref<Record<CredentialKey, string>>({
 	soundcloud_client_id: "",
 	soundcloud_client_secret: "",
 	soundcloud_user_id: "",
@@ -416,62 +191,28 @@ const formData = ref<CredentialForm>({
 	spotify_user_id: "",
 });
 
-const isLoading = ref(false);
-const message = ref("");
-const messageType = ref<"success" | "error">("success");
+// Enregistrement
+const isSaving = ref(false);
+const saveMessage = ref("");
+const saveOk = ref(true);
 
-// Fonction de soumission du formulaire
-async function handleSubmit() {
+async function save() {
+	if (!form.value.soundcloud_client_id && !form.value.spotify_client_id) {
+		saveOk.value = false;
+		saveMessage.value = "Renseigne au moins les clés SoundCloud ou Spotify";
+		return;
+	}
+	isSaving.value = true;
 	try {
-		isLoading.value = true;
-		message.value = "";
-
-		// Validation basique
-		if (
-			!formData.value.soundcloud_client_id &&
-			!formData.value.spotify_client_id
-		) {
-			throw new Error(
-				"Veuillez renseigner au moins les credentials SoundCloud ou Spotify",
-			);
-		}
-
-		// Appel à l'API
-		const response = await fetch(
-			BACKEND_URL + "/api/credentials/create-or-update",
-			{
-				method: "POST",
-				body: JSON.stringify(formData.value),
-				headers: {
-					"Content-Type": "application/json",
-				},
-			},
-		);
-
-		if (!response.ok) {
-			throw new Error(`Erreur HTTP: ${response.status}`);
-		}
-
-		const _data = await response.json();
-
-		// Succès
-		message.value = "Credentials sauvegardés avec succès !";
-		messageType.value = "success";
-
-		// Réinitialiser le formulaire après succès
-		setTimeout(() => {
-			message.value = "";
-		}, 5000);
-	} catch (error: unknown) {
-		console.error("Erreur lors de la sauvegarde:", error);
-		const errorMessage =
-			error instanceof Error
-				? error.message
-				: "Erreur lors de la sauvegarde des credentials";
-		message.value = errorMessage;
-		messageType.value = "error";
+		await apiPost("/api/credentials/create-or-update", {}, form.value);
+		saveOk.value = true;
+		saveMessage.value = "Enregistré";
+	} catch (err: unknown) {
+		saveOk.value = false;
+		saveMessage.value =
+			err instanceof Error ? err.message : "Erreur lors de l'enregistrement";
 	} finally {
-		isLoading.value = false;
+		isSaving.value = false;
 	}
 }
 
@@ -483,26 +224,21 @@ const spotifyRedirectedUrl = ref("");
 const spotifyAuthMessage = ref("");
 const spotifyAuthOk = ref(true);
 
-async function readError(response: Response): Promise<string> {
+async function fetchSpotifyStatus() {
 	try {
-		const data = await response.json();
-		return data.detail || `Erreur HTTP: ${response.status}`;
+		const data = await apiGet<{ connected: boolean; redirect_uri: string }>(
+			"/api/sp_auth_infos/status",
+		);
+		spotifyConnected.value = data.connected;
+		spotifyRedirectUri.value = data.redirect_uri;
 	} catch {
-		return `Erreur HTTP: ${response.status}`;
+		// backend injoignable : on garde « non connecté »
 	}
 }
 
-async function fetchSpotifyStatus() {
-	try {
-		const response = await fetch(BACKEND_URL + "/api/sp_auth_infos/status");
-		if (response.ok) {
-			const data = await response.json();
-			spotifyConnected.value = data.connected;
-			spotifyRedirectUri.value = data.redirect_uri;
-		}
-	} catch (error) {
-		console.error("Erreur lors de la récupération du statut Spotify:", error);
-	}
+function setAuthMessage(ok: boolean, message: string) {
+	spotifyAuthOk.value = ok;
+	spotifyAuthMessage.value = message;
 }
 
 async function startSpotifyLogin() {
@@ -510,72 +246,56 @@ async function startSpotifyLogin() {
 	// Ouvert tout de suite (dans le clic) pour ne pas être bloqué comme popup
 	const tab = window.open("", "_blank");
 	try {
-		const response = await fetch(BACKEND_URL + "/api/sp_auth_infos/login-url");
-		if (!response.ok) throw new Error(await readError(response));
-		const data = await response.json();
+		const data = await apiGet<{ url: string; redirect_uri: string }>(
+			"/api/sp_auth_infos/login-url",
+		);
 		spotifyRedirectUri.value = data.redirect_uri;
 		if (tab) tab.location.href = data.url;
 		else window.location.href = data.url;
 		spotifyLoginStarted.value = true;
-	} catch (error: unknown) {
+	} catch (err: unknown) {
 		tab?.close();
-		spotifyAuthOk.value = false;
-		spotifyAuthMessage.value =
-			error instanceof Error ? error.message : "Erreur de connexion Spotify";
+		setAuthMessage(false, err instanceof Error ? err.message : "Erreur de connexion Spotify");
 	}
 }
 
 async function finishSpotifyLogin() {
 	try {
-		const url = new URL(BACKEND_URL + "/api/sp_auth_infos/connect");
-		url.searchParams.append("code", spotifyRedirectedUrl.value.trim());
-		const response = await fetch(url.toString(), { method: "POST" });
-		if (!response.ok) throw new Error(await readError(response));
-		spotifyAuthOk.value = true;
-		spotifyAuthMessage.value = "Compte Spotify connecté !";
+		await apiPost("/api/sp_auth_infos/connect", {
+			code: spotifyRedirectedUrl.value.trim(),
+		});
+		setAuthMessage(true, "Compte Spotify connecté");
 		spotifyLoginStarted.value = false;
 		spotifyRedirectedUrl.value = "";
 		await fetchSpotifyStatus();
-	} catch (error: unknown) {
-		spotifyAuthOk.value = false;
-		spotifyAuthMessage.value =
-			error instanceof Error ? error.message : "Erreur de connexion Spotify";
+	} catch (err: unknown) {
+		setAuthMessage(false, err instanceof Error ? err.message : "Erreur de connexion Spotify");
 	}
 }
 
 async function disconnectSpotify() {
-	await fetch(BACKEND_URL + "/api/sp_auth_infos/disconnect", { method: "POST" });
-	spotifyAuthOk.value = true;
-	spotifyAuthMessage.value = "Compte Spotify déconnecté";
+	try {
+		await apiPost("/api/sp_auth_infos/disconnect");
+		setAuthMessage(true, "Compte Spotify déconnecté");
+	} catch (err: unknown) {
+		setAuthMessage(false, err instanceof Error ? err.message : "Erreur");
+	}
 	await fetchSpotifyStatus();
 }
 
-// Charger les credentials existants au montage du composant
 onMounted(async () => {
 	fetchSpotifyStatus();
 	try {
-		const response = await fetch(BACKEND_URL + "/api/credentials/");
-		if (response.ok) {
-			const data = await response.json();
-			if (data) {
-				console.log(data);
-				formData.value = {
-					soundcloud_client_id: data.soundcloud_client_id || "",
-					soundcloud_client_secret: data.soundcloud_client_secret || "",
-					soundcloud_user_id: data.soundcloud_user_id?.toString() || "",
-					spotify_client_id: data.spotify_client_id || "",
-					spotify_client_secret: data.spotify_client_secret || "",
-					spotify_user_id: data.spotify_user_id?.toString() || "",
-				};
+		const data = await apiGet<Partial<Record<CredentialKey, string | number | null>> | null>(
+			"/api/credentials/",
+		);
+		if (data) {
+			for (const key of Object.keys(form.value) as CredentialKey[]) {
+				form.value[key] = data[key]?.toString() ?? "";
 			}
 		}
-	} catch (error) {
-		console.error("Erreur lors de la récupération des credentials:", error);
-		console.log("Aucun credential existant trouvé");
+	} catch {
+		// pas encore de credentials enregistrés
 	}
 });
 </script>
-
-<style scoped>
-/* Styles personnalisés si nécessaire */
-</style>

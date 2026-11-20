@@ -1,71 +1,60 @@
 <template>
-	<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-		<!-- Header -->
-		<header class="bg-white shadow-sm border-b border-gray-200">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div class="flex justify-between items-center py-6">
-					<div class="flex items-center">
-						<div
-							class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
-						>
-							<svg
-								class="w-6 h-6 text-white"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-								/>
-							</svg>
-						</div>
-						<h1 class="ml-3 text-2xl font-bold text-gray-900">MinMajDL</h1>
-					</div>
-				</div>
-			</div>
-		</header>
+	<div>
+		<nav
+			class="mb-6 inline-flex p-1 gap-1 bg-gray-200/70 rounded-xl text-sm font-medium"
+			role="tablist"
+		>
+			<button
+				v-for="t in TABS"
+				:key="t.id"
+				role="tab"
+				:aria-selected="tab === t.id"
+				class="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+				:class="
+					tab === t.id
+						? 'bg-white text-gray-900 shadow-sm'
+						: 'text-gray-600 hover:text-gray-900'
+				"
+				@click="selectTab(t.id)"
+			>
+				<span class="w-2 h-2 rounded-full" :class="ACCENTS[t.accent].dot" />
+				{{ t.label }}
+			</button>
+		</nav>
 
-		<!-- Main Content -->
-		<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-			<!-- Hero Section -->
-			<div class="text-center mb-16">
-				<h1 class="text-4xl font-bold text-gray-900 mb-6">BLABLA</h1>
-				<h2 class="text-4xl font-bold text-gray-900 mb-6">
-					Téléchargez votre musique en toute simplicité
-				</h2>
-				<p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-					MusicDL vous permet de télécharger vos playlists SoundCloud et Spotify
-					préférées avec une interface simple et intuitive.
-				</p>
-				<div class="flex justify-center space-x-4">
-					<NuxtLink
-						to="/credentials"
-						class="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-lg inline-block"
-					>
-						Renseigner mes credentials
-					</NuxtLink>
-				</div>
-			</div>
-		</main>
-
-		<!-- Footer -->
-		<footer class="bg-gray-50 border-t border-gray-200 mt-16">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				<div class="text-center text-gray-600">
-					<p>&copy; 2025 MusicDL. Tous droits réservés.</p>
-				</div>
-			</div>
-		</footer>
+		<!-- Chaque onglet n'est chargé qu'à sa première ouverture, puis gardé en mémoire -->
+		<SoundcloudTab v-if="visited.has('soundcloud')" v-show="tab === 'soundcloud'" />
+		<SpotifyTab v-if="visited.has('spotify')" v-show="tab === 'spotify'" />
+		<YoutubeTab v-if="visited.has('youtube')" v-show="tab === 'youtube'" />
 	</div>
 </template>
 
 <script setup lang="ts">
-// Le composant est maintenant une page d'accueil statique
-</script>
+import { computed, reactive, watch } from "vue";
+import { ACCENTS, type Accent } from "~/utils/accents";
 
-<style scoped>
-/* Styles personnalisés si nécessaire */
-</style>
+const TABS = [
+	{ id: "soundcloud", label: "SoundCloud", accent: "orange" },
+	{ id: "spotify", label: "Spotify", accent: "green" },
+	{ id: "youtube", label: "YouTube", accent: "red" },
+] as const satisfies readonly { id: string; label: string; accent: Accent }[];
+
+type TabId = (typeof TABS)[number]["id"];
+
+// L'onglet actif est dans l'URL (?tab=...) : il survit au rechargement
+const route = useRoute();
+const router = useRouter();
+
+const tab = computed<TabId>(() => {
+	const fromUrl = route.query.tab;
+	return TABS.find((t) => t.id === fromUrl)?.id ?? "soundcloud";
+});
+
+const visited = reactive(new Set<TabId>([tab.value]));
+// Couvre aussi les changements d'onglet via précédent / suivant du navigateur
+watch(tab, (id) => visited.add(id));
+
+function selectTab(id: TabId) {
+	router.replace({ query: { ...route.query, tab: id } });
+}
+</script>
