@@ -32,3 +32,5 @@ SOUNDCLOUD_STATE_DIR = f"{DESTINATION_FOLDER}/.minmaj/soundcloud"
 SOUNDCLOUD_LIKES_FOLDER = "Likes SoundCloud"
 # Archive + nom de dossier par playlist Spotify
 SPOTIFY_STATE_DIR = f"{DESTINATION_FOLDER}/.minmaj/spotify"
+# Dossier des téléchargements YouTube : yt-AAAA-MM-JJ (date du jour)
+YOUTUBE_FOLDER_PREFIX = "yt-"
